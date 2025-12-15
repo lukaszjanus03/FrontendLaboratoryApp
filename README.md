@@ -30,6 +30,6 @@ W projekcie zaimplementowano testy End-to-End przy użyciu **Playwright**:
 ## 👤 Autor
 Łukasz Janus
 Numer albumu 15439
-## Getting Started
+
 
 
