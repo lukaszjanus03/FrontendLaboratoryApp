@@ -1,11 +1,9 @@
 'use client'
 import { useState, useEffect } from "react";
 import { getAuth, updateProfile } from "firebase/auth";
-// Importy Firestore
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { app, db } from "@/app/lib/firebase"; 
 import { useAuth } from "@/app/lib/AuthContext";
-// Import Toast (Bajer 1)
 import { toast } from "react-hot-toast";
 
 export default function ProfilePage() {
@@ -14,7 +12,7 @@ export default function ProfilePage() {
     
     // Stany formularza
     const [displayName, setDisplayName] = useState("");
-    const [photoURL, setPhotoURL] = useState("");
+    const [photoURL, setPhotoURL] = useState(""); // <-- To tu było, ale nie miało inputa
     
     // Stan adresu
     const [address, setAddress] = useState({
@@ -23,14 +21,13 @@ export default function ProfilePage() {
         zipCode: ""
     });
 
-    // Blokowanie pól do czasu pobrania danych
     const [loading, setLoading] = useState(true);
 
-    // --- Odczyt danych (useEffect) ---
+    // --- Odczyt danych ---
     useEffect(() => {
         const fetchData = async () => {
             if (user) {
-                // 1. Ustaw dane z Auth
+                // 1. Ustaw dane z Auth (Nazwa i Zdjęcie)
                 setDisplayName(user.displayName || "");
                 setPhotoURL(user.photoURL || "");
 
@@ -50,8 +47,8 @@ export default function ProfilePage() {
                         }
                     }
                 } catch (e) {
-                    console.error("Błąd pobierania dokumentu: ", e);
-                    toast.error("Nie udało się pobrać danych profilowych.");
+                    console.error("Błąd: ", e);
+                    toast.error("Nie udało się pobrać danych.");
                 } finally {
                     setLoading(false);
                 }
@@ -65,18 +62,16 @@ export default function ProfilePage() {
         setAddress(prev => ({ ...prev, [name]: value }));
     };
 
-    // --- Zapis danych (onSubmit) z TOASTAMI ---
+    // --- Zapis danych ---
     const onSubmit = async (e) => {
         e.preventDefault();
-        
-        // 1. Pokaż loader
         const loadingToast = toast.loading("Zapisywanie zmian...");
 
         try {
-            // A. Aktualizacja profilu Auth
+            // A. Aktualizacja Auth (Nazwa i Zdjęcie)
             await updateProfile(auth.currentUser, {
                 displayName: displayName,
-                photoURL: photoURL,
+                photoURL: photoURL, // <-- Teraz to zadziała, bo dodamy input
             });
 
             // B. Zapis adresu do Firestore
@@ -88,15 +83,10 @@ export default function ProfilePage() {
                 }
             }, { merge: true });
 
-            console.log("Zapisano dane dla ID: ", user.uid);
-            
-            // 2. Sukces - zamień loader na zielony komunikat
-            toast.success("Profil zaktualizowany pomyślnie!", { id: loadingToast });
-            
+            toast.success("Profil zaktualizowany!", { id: loadingToast });
         } catch (error) {
-            console.error("Błąd zapisu: ", error);
-            // 3. Błąd - zamień loader na czerwony komunikat
-            toast.error(`Błąd zapisu: ${error.message}`, { id: loadingToast });
+            console.error(error);
+            toast.error(`Błąd: ${error.message}`, { id: loadingToast });
         }
     };
 
@@ -107,13 +97,32 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-bold mb-6 text-slate-800 border-b pb-2">Edycja Profilu</h2>
 
             <form onSubmit={onSubmit} className="space-y-6">
-                {/* Sekcja Auth */}
+                
+                {/* --- SEKCJA DANE LOGOWANIA --- */}
                 <div className="grid grid-cols-1 gap-4">
-                    <h3 className="font-semibold text-gray-700">Dane logowania</h3>
+                    <h3 className="font-semibold text-gray-700">Dane użytkownika</h3>
+                    
+                    {/* PODGLĄD AVATARA */}
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-violet-200 bg-gray-100">
+                             {/* Jeśli jest photoURL, pokaż obrazek, jeśli nie - placeholder */}
+                             <img 
+                                src={photoURL || "https://ui-avatars.com/api/?name=" + (displayName || "User")} 
+                                alt="Avatar" 
+                                className="w-full h-full object-cover"
+                                onError={(e) => {e.target.src="https://ui-avatars.com/api/?name=User"}} // Fallback jak link nie działa
+                             />
+                        </div>
+                        <div className="text-sm text-gray-500">
+                            Tak wyglądasz w aplikacji
+                        </div>
+                    </div>
+
                     <div>
-                        <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Email (read-only)</label>
+                        <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Email (zablokowany)</label>
                         <input type="text" value={user.email} disabled className="w-full border p-2 rounded bg-gray-100 text-gray-500 cursor-not-allowed" />
                     </div>
+                    
                     <div>
                         <label className="block text-sm font-medium mb-1">Nazwa wyświetlana</label>
                         <input 
@@ -121,12 +130,26 @@ export default function ProfilePage() {
                             value={displayName} 
                             onChange={(e) => setDisplayName(e.target.value)}
                             disabled={loading}
-                            className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none disabled:opacity-50" 
+                            className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none" 
                         />
+                    </div>
+
+                    {/* --- PRZYWRÓCONE POLE PHOTO URL --- */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Link do zdjęcia (URL)</label>
+                        <input 
+                            type="text" 
+                            value={photoURL} 
+                            onChange={(e) => setPhotoURL(e.target.value)}
+                            disabled={loading}
+                            placeholder="https://przyklad.pl/moje-zdjecie.jpg"
+                            className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none" 
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Wklej bezpośredni link do obrazka (np. z Imgur lub Google Photos).</p>
                     </div>
                 </div>
 
-                {/* Sekcja Firestore (Adres) */}
+                {/* --- SEKCJA ADRES (FIRESTORE) --- */}
                 <div className="pt-4 border-t border-gray-100">
                     <h3 className="font-semibold text-gray-700 mb-4">Adres zamieszkania</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -138,7 +161,7 @@ export default function ProfilePage() {
                                 value={address.street} 
                                 onChange={handleAddressChange}
                                 disabled={loading}
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none disabled:opacity-50" 
+                                className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none" 
                             />
                         </div>
                         <div>
@@ -149,7 +172,7 @@ export default function ProfilePage() {
                                 value={address.city} 
                                 onChange={handleAddressChange}
                                 disabled={loading} 
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none disabled:opacity-50" 
+                                className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none" 
                             />
                         </div>
                         <div>
@@ -160,7 +183,7 @@ export default function ProfilePage() {
                                 value={address.zipCode} 
                                 onChange={handleAddressChange}
                                 disabled={loading} 
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none disabled:opacity-50" 
+                                className="w-full border p-2 rounded focus:ring-2 focus:ring-violet-500 outline-none" 
                             />
                         </div>
                     </div>
@@ -169,9 +192,9 @@ export default function ProfilePage() {
                 <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full px-6 py-3 bg-violet-600 text-white rounded hover:bg-violet-700 font-medium transition disabled:bg-gray-400"
+                    className="w-full px-6 py-3 bg-violet-600 text-white rounded hover:bg-violet-700 font-medium transition shadow-lg shadow-violet-200"
                 >
-                    {loading ? "Ładowanie danych..." : "Zapisz zmiany"}
+                    {loading ? "Ładowanie..." : "Zapisz zmiany"}
                 </button>
             </form>
         </div>

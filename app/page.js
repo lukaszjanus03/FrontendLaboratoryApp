@@ -1,65 +1,107 @@
-import Image from "next/image";
+'use client';
+import { useAuth } from "@/app/lib/AuthContext";
+import Link from "next/link";
 
 export default function Home() {
+  const { user } = useAuth();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="flex flex-col items-center justify-center min-h-[80vh] w-full">
+      
+      {/* --- WIDOK DLA ZALOGOWANEGO UŻYTKOWNIKA --- */}
+      {user ? (
+        <div className="max-w-4xl w-full bg-white p-8 rounded-2xl shadow-xl border border-violet-100 animate-in fade-in zoom-in duration-500">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 mb-4">
+              Witaj w Panelu Frontend! 👋
+            </h1>
+            <p className="text-lg text-slate-600">
+              Zalogowano jako: <span className="font-semibold text-violet-700">{user.email}</span>
+            </p>
+          </div>
+
+          <div className="space-y-6 text-slate-700 leading-relaxed">
+            <p className="text-xl font-medium border-l-4 border-violet-500 pl-4 bg-violet-50 py-2 rounded-r">
+              O Projekcie
+            </p>
+            <p>
+              Ta aplikacja została stworzona w ramach przedmiotu <strong>Laboratoria Programowania Frontend</strong>. 
+              Projekt demonstruje nowoczesne podejście do tworzenia aplikacji webowych typu SPA/PWA.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-6 mt-8">
+              <div className="p-4 border rounded-lg hover:border-violet-300 transition hover:shadow-md">
+                <h3 className="font-bold text-violet-700 mb-2">🛠️ Technologie</h3>
+                <ul className="list-disc list-inside text-sm space-y-1 text-slate-600">
+                  <li>Next.js (App Router)</li>
+                  <li>Firebase (Auth & Firestore)</li>
+                  <li>Tailwind CSS</li>
+                  <li>React Hooks</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border rounded-lg hover:border-green-300 transition hover:shadow-md">
+                <h3 className="font-bold text-green-700 mb-2">🚀 Funkcjonalności</h3>
+                <ul className="list-disc list-inside text-sm space-y-1 text-slate-600">
+                  <li>Pełna autentykacja użytkowników</li>
+                  <li>Ochrona ścieżek (Protected Routes)</li>
+                  <li>Zarządzanie stanem globalnym</li>
+                  <li>Dynamiczna tabela danych (Temat 3)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-center gap-4">
+              <Link href="/articles" className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition shadow font-medium">
+                Przejdź do Artykułów
+              </Link>
+              <Link href="/project" className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium">
+                Zobacz Tabelę
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        
+        /* --- WIDOK DLA NIEZALOGOWANEGO (MENU STARTOWE) --- */
+        <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-2xl border border-slate-100 text-center animate-in slide-in-from-bottom-10 duration-700">
+          <div className="mb-8">
+            <div className="w-20 h-20 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
+              🚀
+            </div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Laboratorium Frontend</h1>
+            <p className="text-slate-500">
+              Aby uzyskać dostęp do projektu i funkcjonalności, musisz się zalogować.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <Link 
+              href="/user/signin" 
+              className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-violet-200"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Zaloguj się
+            </Link>
+            
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">lub</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <Link 
+              href="/user/register" 
+              className="w-full py-3 px-4 bg-white border-2 border-slate-200 hover:border-violet-600 hover:text-violet-600 text-slate-700 font-bold rounded-lg transition-all"
             >
-              Learning
-            </a>{" "}
-            center.
+              Utwórz konto
+            </Link>
+          </div>
+
+          <p className="mt-8 text-xs text-gray-400">
+            Projekt zaliczeniowy Next.js + Firebase
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
     </div>
   );
 }
